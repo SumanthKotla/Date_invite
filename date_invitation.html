@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>A Question For You</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<!-- EmailJS — used to send you the results automatically. See EMAILJS_CONFIG near the bottom of the script. -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+  /* ============================================================
+     CUSTOMIZE ME — quick edits live in the PLAN object at the
+     bottom of this file (inside <script>). Look for "EDIT THIS".
+     ============================================================ */
+
+  :root{
+    --cream:#FBF4ED;
+    --paper:#FFFDF9;
+    --blush:#FCDADB;
+    --rose:#E8627A;
+    --berry:#B6395A;
+    --sage:#9FB48C;
+    --gold:#E3A96A;
+    --ink:#3E2E2E;
+    --ink-soft:#9C8A86;
+    --radius:24px;
+    --shadow:0 24px 70px -28px rgba(182,57,90,0.45);
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0; padding:0; min-height:100%;
+  }
+
+  body{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 18% 12%, rgba(252,218,219,0.9), transparent 45%),
+      radial-gradient(circle at 85% 88%, rgba(159,180,140,0.25), transparent 50%),
+      var(--cream);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* ---------- ambient falling petals ---------- */
+  #ambient{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    overflow:hidden;
+  }
+  .petal{
+    position:absolute; top:-8vh;
+    width:14px; height:18px;
+    border-radius:60% 0 60% 0;
+    opacity:0.55;
+    animation:fall linear infinite;
+  }
+  .petal.rose{ background:var(--rose); }
+  .petal.blush{ background:var(--blush); border:1px solid rgba(232,98,122,0.25); }
+  .petal.gold{ background:var(--gold); }
+  .petal.sage{ background:var(--sage); }
+  @keyframes fall{
+    0%   { transform: translateY(0) translateX(0) rotate(0deg); }
+    100% { transform: translateY(112vh) translateX(var(--drift,40px)) rotate(380deg); }
+  }
+
+  /* ---------- card ---------- */
+  .card{
+    position:relative; z-index:1;
+    background:var(--paper);
+    border:1px solid rgba(182,57,90,0.08);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    width:100%;
+    max-width:460px;
+    padding:2.4rem 2rem 2.2rem;
+    text-align:center;
+    animation:cardIn 0.7s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes cardIn{
+    from{ opacity:0; transform:translateY(18px) scale(.985); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  /* ---------- progress dots ---------- */
+  .progress{
+    display:flex; justify-content:center; gap:6px; margin-bottom:1.2rem;
+  }
+  .progress span{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--blush);
+    transition:background .3s ease, transform .3s ease;
+  }
+  .progress span.on{ background:var(--rose); transform:scale(1.2); }
+
+  /* ---------- typography ---------- */
+  .eyebrow{
+    font-family:'Caveat', cursive;
+    font-size:1.35rem;
+    color:var(--berry);
+    margin:0 0 0.2rem;
+    font-weight:700;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:1.85rem;
+    line-height:1.25;
+    margin:0 0 1.4rem;
+    color:var(--ink);
+  }
+  p.sub{
+    color:var(--ink-soft);
+    margin:-0.6rem 0 1.4rem;
+    font-size:0.95rem;
+  }
+
+  /* ---------- back button ---------- */
+  .back{
+    position:absolute; top:18px; left:18px;
+    background:none; border:none; cursor:pointer;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-size:0.85rem; font-weight:600;
+    color:var(--ink-soft);
+    padding:6px 10px; border-radius:999px;
+    transition:color .2s, background .2s;
+  }
+  .back:hover{ color:var(--berry); background:var(--blush); }
+
+  /* ---------- buttons ---------- */
+  .btn{
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:700;
+    font-size:1rem;
+    border:none;
+    border-radius:999px;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+  }
+  .btn:focus-visible{ outline:3px solid var(--sage); outline-offset:2px; }
+  .btn.primary{
+    background:var(--rose);
+    color:#fff;
+    padding:0.95rem 1.8rem;
+    width:100%;
+    box-shadow:0 12px 28px -12px rgba(232,98,122,0.65);
+  }
+  .btn.primary:hover{ transform:translateY(-2px); box-shadow:0 16px 32px -12px rgba(232,98,122,0.75); }
+  .btn.primary:active{ transform:translateY(0); }
+
+  .btn.ghost{
+    background:var(--paper);
+    color:var(--ink-soft);
+    border:1.5px solid var(--blush);
+    padding:0.95rem 1.6rem;
+  }
+
+  /* ---------- the question stage (yes/no) ---------- */
+  .stage{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+    gap:14px;
+    min-height:130px;
+    margin-bottom:0.6rem;
+  }
+  .stage .btn.primary{ width:auto; padding:0.95rem 2.2rem; flex:0 0 auto; }
+  #no-btn{
+    flex:0 0 auto;
+    user-select:none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .caption{
+    font-family:'Caveat', cursive;
+    font-size:1.2rem;
+    color:var(--berry);
+    min-height:1.6rem;
+    margin:0.4rem 0 0.4rem;
+  }
+
+  /* ---------- date / plan card ---------- */
+  .detail-card{
+    background:var(--cream);
+    border:1px solid rgba(182,57,90,0.08);
+    border-radius:18px;
+    padding:1.1rem 1.3rem;
+    margin-bottom:1.4rem;
+  }
+  .detail-row{ display:none; } /* legacy, unused */
+
+  /* ---------- calendar ---------- */
+  .cal-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:0.7rem;
+  }
+  .cal-arrow{
+    background:var(--paper);
+    border:1.5px solid var(--blush);
+    color:var(--berry);
+    width:34px; height:34px;
+    border-radius:50%;
+    font-size:1.1rem;
+    font-weight:700;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .2s, border-color .2s, opacity .2s;
+  }
+  .cal-arrow:hover:not(:disabled){ background:var(--blush); border-color:var(--rose); }
+  .cal-arrow:disabled{ opacity:0.3; cursor:default; }
+  .cal-header{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:1.2rem;
+    color:var(--berry);
+  }
+  .cal-grid{
+    display:grid;
+    grid-template-columns:repeat(7, 1fr);
+    gap:4px;
+    margin-bottom:0.4rem;
+  }
+  .cal-dow{
+    font-size:0.7rem;
+    font-weight:700;
+    letter-spacing:0.04em;
+    color:var(--ink-soft);
+    text-align:center;
+    padding-bottom:4px;
+  }
+  .cal-cell{
+    position:relative;
+    aspect-ratio:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    font-size:0.85rem;
+    font-weight:600;
+    color:var(--ink);
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease, transform .15s ease;
+  }
+  .cal-cell:hover:not(.disabled):not(.selected){
+    background:var(--blush);
+  }
+  .cal-cell.empty{ visibility:hidden; cursor:default; }
+  .cal-cell.disabled{
+    color:var(--ink-soft);
+    opacity:0.32;
+    cursor:default;
+  }
+  .cal-cell.selected{
+    background:var(--rose);
+    color:#fff;
+    box-shadow:0 8px 18px -8px rgba(232,98,122,0.65);
+    animation:calPulse 2.2s ease-in-out infinite;
+  }
+  .cal-heart{
+    position:absolute;
+    top:-9px; right:-4px;
+    font-size:0.7rem;
+    color:var(--berry);
+  }
+  @keyframes calPulse{
+    0%,100%{ transform:scale(1); }
+    50%{ transform:scale(1.14); }
+  }
+  .cal-time{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-size:1.05rem;
+    color:var(--berry);
+    text-align:center;
+  }
+
+  /* ---------- time picker ---------- */
+  .time-slots{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:8px;
+    margin-bottom:0.6rem;
+  }
+  .time-chip{
+    background:var(--cream);
+    border:1.5px solid rgba(182,57,90,0.1);
+    border-radius:14px;
+    padding:0.6rem 0.4rem;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:600;
+    font-size:0.85rem;
+    color:var(--ink);
+    cursor:pointer;
+    transition:transform .15s ease, background .2s ease, border-color .2s ease;
+  }
+  .time-chip:hover{ background:var(--blush); border-color:var(--rose); transform:translateY(-2px); }
+  .time-chip.selected{
+    background:var(--rose);
+    color:#fff;
+    border-color:var(--rose);
+  }
+
+  /* ---------- selected option state (flowers / fun questions) ---------- */
+  .option.selected{
+    background:var(--rose);
+    color:#fff;
+    border-color:var(--rose);
+  }
+  .option.selected .option-desc{ color:rgba(255,255,255,0.85); }
+
+  /* ---------- option grids ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:0.6rem;
+  }
+  .grid.cols-1{ grid-template-columns:1fr; }
+
+  .option{
+    background:var(--cream);
+    border:1.5px solid rgba(182,57,90,0.1);
+    border-radius:16px;
+    padding:0.95rem 0.8rem;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:600;
+    font-size:0.95rem;
+    color:var(--ink);
+    cursor:pointer;
+    text-align:left;
+    display:flex; align-items:center; gap:10px;
+    transition:transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  .option .ic{ font-size:1.4rem; line-height:1; }
+  .option:hover{
+    background:var(--blush);
+    border-color:var(--rose);
+    transform:translateY(-2px);
+    box-shadow:0 10px 20px -14px rgba(232,98,122,0.6);
+  }
+  .option:focus-visible{ outline:3px solid var(--sage); outline-offset:2px; }
+
+  .option-desc{
+    display:block;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:400;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .option-text{ display:flex; flex-direction:column; gap:0; }
+
+  /* ---------- text input (for "other") ---------- */
+  .other-wrap{ display:none; margin-top:0.8rem; text-align:left; }
+  .other-wrap.show{ display:block; }
+  .other-wrap input, .other-wrap textarea{
+    width:100%;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-size:0.95rem;
+    padding:0.7rem 0.9rem;
+    border:1.5px solid var(--blush);
+    border-radius:14px;
+    background:var(--cream);
+    color:var(--ink);
+    resize:none;
+    margin-bottom:0.7rem;
+  }
+  .other-wrap input:focus, .other-wrap textarea:focus{
+    outline:none; border-color:var(--rose);
+  }
+
+  /* ---------- final screen ---------- */
+  .flower-scene{
+    position:relative;
+    height:170px;
+    margin:0.4rem 0 1.2rem;
+  }
+  .flower{
+    position:absolute;
+    width:60px; height:60px;
+    transform-origin:50% 50%;
+    opacity:0;
+    animation:bloom 0.7s ease forwards, sway 4s ease-in-out infinite;
+  }
+  .flower .petals ellipse{ }
+  .flower.rose .petals ellipse{ fill:var(--rose); }
+  .flower.blush .petals ellipse{ fill:#F6A8B4; }
+  .flower.gold .petals ellipse{ fill:var(--gold); }
+  .flower.sage .petals .center{ fill:var(--sage); }
+  .flower .center{ fill:var(--gold); }
+  .flower.rose .center{ fill:#FFE3A0; }
+
+  .flower:nth-of-type(1){ left:4%;  top:46%; width:54px; animation-delay:.05s, .75s; }
+  .flower:nth-of-type(2){ left:24%; top:8%;  width:46px; animation-delay:.20s, .9s; }
+  .flower:nth-of-type(3){ left:46%; top:34%; width:70px; animation-delay:.35s, .6s; }
+  .flower:nth-of-type(4){ left:68%; top:6%;  width:48px; animation-delay:.5s, 1.05s; }
+  .flower:nth-of-type(5){ left:80%; top:48%; width:58px; animation-delay:.65s, .8s; }
+  .flower:nth-of-type(6){ left:54%; top:64%; width:42px; animation-delay:.8s, .7s; }
+
+  @keyframes bloom{
+    0%   { opacity:0; transform:scale(0) rotate(-25deg); }
+    65%  { opacity:1; transform:scale(1.12) rotate(6deg); }
+    100% { opacity:1; transform:scale(1) rotate(0deg); }
+  }
+  @keyframes sway{
+    0%,100%{ transform:translateY(0) rotate(0deg); }
+    50%{ transform:translateY(-6px) rotate(4deg); }
+  }
+
+  .summary{
+    background:var(--cream);
+    border:1px solid rgba(182,57,90,0.08);
+    border-radius:18px;
+    padding:1.2rem 1.3rem;
+    font-size:1rem;
+    line-height:1.65;
+    margin-bottom:0.4rem;
+  }
+  .summary strong{ font-family:'Fraunces', serif; font-weight:600; color:var(--berry); }
+  .signoff{
+    font-family:'Caveat', cursive;
+    font-size:1.4rem;
+    color:var(--berry);
+    margin-top:1rem;
+  }
+  .send-status{
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    min-height:1.2rem;
+    margin-top:0.6rem;
+  }
+  .send-status.ok{ color:var(--sage); font-weight:600; }
+  .send-status.err{ color:var(--berry); }
+  .mailto-btn{
+    display:inline-block;
+    margin-top:0.6rem;
+    font-size:0.85rem;
+    font-weight:600;
+    color:var(--berry);
+    text-decoration:none;
+    border-bottom:1px dashed var(--berry);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .petal, .flower, .card{ animation:none !important; }
+    .flower{ opacity:1; transform:none; }
+  }
+
+  @media (max-width:380px){
+    .card{ padding:2rem 1.2rem; }
+    h1{ font-size:1.6rem; }
+    .stage{ flex-direction:row; gap:8px; }
+  }
+
+  /* ---------- screens ---------- */
+  .screen{ display:none; }
+  .screen.active{ display:block; animation:fadeUp .45s ease both; }
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div id="ambient"></div>
+
+<div class="card">
+
+  <div class="progress" id="progress">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <!-- SCREEN 0 — the question -->
+  <section class="screen active" id="screen-ask">
+    <div class="eyebrow">a question, for you</div>
+    <h1>Will you go out on a date with me?</h1>
+    <div class="stage" id="stage">
+      <button class="btn primary" id="yes-btn">Yes 💌</button>
+      <button class="btn ghost" id="no-btn">No</button>
+    </div>
+    <p class="caption" id="dodge-caption">&nbsp;</p>
+  </section>
+
+  <!-- SCREEN 1 — date / day / time -->
+  <section class="screen" id="screen-date">
+    <div class="eyebrow">it's a date 🎉</div>
+    <h1>Pick a day &amp; time</h1>
+    <p class="sub">Anytime in the next 30 days</p>
+    <div class="detail-card" id="plan-card">
+      <!-- filled by JS: calendar -->
+    </div>
+    <div class="time-slots" id="time-slots">
+      <button class="time-chip" onclick="selectTime('11:00 AM', this)">11:00 AM</button>
+      <button class="time-chip" onclick="selectTime('1:00 PM', this)">1:00 PM</button>
+      <button class="time-chip" onclick="selectTime('3:00 PM', this)">3:00 PM</button>
+      <button class="time-chip" onclick="selectTime('5:00 PM', this)">5:00 PM</button>
+      <button class="time-chip" onclick="selectTime('6:30 PM', this)">6:30 PM</button>
+      <button class="time-chip" onclick="selectTime('8:00 PM', this)">8:00 PM</button>
+    </div>
+    <div class="other-wrap show" style="margin-top:0.6rem;">
+      <input type="time" id="time-other-input" oninput="selectTime(null, null, this.value)" />
+    </div>
+    <p class="caption" id="date-warning">&nbsp;</p>
+    <button class="btn primary" onclick="confirmDateTime()">Now let's pick something to do →</button>
+  </section>
+
+  <!-- SCREEN 2 — activity picker -->
+  <section class="screen" id="screen-activity">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">your call</div>
+    <h1>What should we do?</h1>
+    <div class="grid">
+      <button class="option" onclick="selectActivity('coffee')"><span class="ic">☕</span>Coffee</button>
+      <button class="option" onclick="selectActivity('food')"><span class="ic">🍽️</span>Food</button>
+      <button class="option" onclick="selectActivity('arcade')"><span class="ic">🕹️</span>Arcade</button>
+      <button class="option" onclick="selectActivity('bowling')"><span class="ic">🎳</span>Bowling</button>
+      <button class="option" onclick="selectActivity('movie')"><span class="ic">🎬</span>Movie</button>
+      <button class="option" onclick="selectActivity('picnic')"><span class="ic">🧺</span>Picnic</button>
+      <button class="option" onclick="selectActivity('walk')"><span class="ic">🚶</span>Walk</button>
+      <button class="option" onclick="selectActivity('viewpoint')"><span class="ic">🌇</span>Viewpoint</button>
+      <button class="option" onclick="selectActivity('fun')"><span class="ic">🎲</span>Fun Questions</button>
+      <button class="option" onclick="selectActivity('other')"><span class="ic">✨</span>Other</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3a — coffee -->
+  <section class="screen" id="screen-coffee">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">☕ coffee</div>
+    <h1>Pick your order</h1>
+    <div class="grid">
+      <button class="option" onclick="finish('coffee','Matcha 🍵')"><span class="ic">🍵</span>Matcha</button>
+      <button class="option" onclick="finish('coffee','Caramel Macchiato')"><span class="ic">☕</span>Caramel Macchiato</button>
+      <button class="option" onclick="finish('coffee','Frappuccino')"><span class="ic">🧋</span>Frappuccino</button>
+      <button class="option" onclick="finish('coffee','Espresso')"><span class="ic">☕</span>Espresso</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3b — food -->
+  <section class="screen" id="screen-food">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">🍽️ food</div>
+    <h1>What are we eating?</h1>
+    <div class="grid">
+      <button class="option" onclick="finish('food','Tacos 🌮')"><span class="ic">🌮</span>Tacos</button>
+      <button class="option" onclick="finish('food','Burgers 🍔')"><span class="ic">🍔</span>Burgers</button>
+      <button class="option" onclick="finish('food','Indian food 🍛')"><span class="ic">🍛</span>Indian food</button>
+      <button class="option" onclick="finish('food','Pasta / Pizza 🍝')"><span class="ic">🍝</span>Pasta / Pizza</button>
+      <button class="option" onclick="finish('food','Thai food 🍜')"><span class="ic">🍜</span>Thai food</button>
+      <button class="option" onclick="showOther('food-other')"><span class="ic">✨</span>Other</button>
+    </div>
+    <div class="other-wrap" id="food-other">
+      <input type="text" id="food-other-input" placeholder="What are you craving?" />
+      <button class="btn primary" onclick="finishOther('food','food-other-input','🍴')">That's the one</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3c — arcade -->
+  <section class="screen" id="screen-arcade">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">🕹️ arcade</div>
+    <h1>Game plan?</h1>
+    <div class="grid">
+      <button class="option" onclick="finish('arcade','Classic cabinets')"><span class="ic">👾</span>Classic cabinets</button>
+      <button class="option" onclick="finish('arcade','Claw machine challenge')"><span class="ic">🧸</span>Claw machine challenge</button>
+      <button class="option" onclick="finish('arcade','Air hockey showdown')"><span class="ic">🏒</span>Air hockey showdown</button>
+      <button class="option" onclick="finish('arcade',\"Whatever's hot that night\")"><span class="ic">🎲</span>Surprise us</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3d — bowling -->
+  <section class="screen" id="screen-bowling">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">🎳 bowling</div>
+    <h1>How are we playing this?</h1>
+    <div class="grid">
+      <button class="option" onclick="finish('bowling','Casual & chill')"><span class="ic">😌</span>Casual & chill</button>
+      <button class="option" onclick="finish('bowling','Making it a competition 👀')"><span class="ic">🏆</span>Make it a competition</button>
+      <button class="option" onclick="finish('bowling','Cosmic / blacklight bowling')"><span class="ic">✨</span>Cosmic bowling</button>
+      <button class="option" onclick="finish('bowling','Loser buys snacks 😈')"><span class="ic">🍟</span>Loser buys snacks</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3e — movie -->
+  <section class="screen" id="screen-movie">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">🎬 movie</div>
+    <h1>Pick a genre</h1>
+    <div class="grid">
+      <button class="option" onclick="finish('movie','Romance 💕')"><span class="ic">💕</span>Romance</button>
+      <button class="option" onclick="finish('movie','Comedy 😂')"><span class="ic">😂</span>Comedy</button>
+      <button class="option" onclick="finish('movie','Action 💥')"><span class="ic">💥</span>Action</button>
+      <button class="option" onclick="finish('movie','Animation 🎨')"><span class="ic">🎨</span>Animation</button>
+      <button class="option" onclick="finish('movie','Horror / Thriller 👻')"><span class="ic">👻</span>Horror / Thriller</button>
+      <button class="option" onclick="finish('movie','Sci-Fi 🚀')"><span class="ic">🚀</span>Sci-Fi</button>
+      <button class="option" onclick="finish('movie','Drama 🎭')"><span class="ic">🎭</span>Drama</button>
+      <button class="option" onclick="finish('movie','Documentary 🎥')"><span class="ic">🎥</span>Documentary</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3f — picnic -->
+  <section class="screen" id="screen-picnic">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">🧺 picnic</div>
+    <h1>What kind of picnic?</h1>
+    <div class="grid cols-1">
+      <button class="option" onclick="finish('picnic','Classic park blanket + snack board')">
+        <span class="ic">🧀</span>
+        <span class="option-text">Classic park blanket<span class="option-desc">Blanket, snack board, good playlist</span></span>
+      </button>
+      <button class="option" onclick="finish('picnic','Sunset picnic with a view')">
+        <span class="ic">🌅</span>
+        <span class="option-text">Sunset picnic<span class="option-desc">Golden hour, somewhere with a view</span></span>
+      </button>
+      <button class="option" onclick="finish('picnic','Rooftop picnic')">
+        <span class="ic">🏙️</span>
+        <span class="option-text">Rooftop picnic<span class="option-desc">City skyline, blanket on concrete</span></span>
+      </button>
+      <button class="option" onclick="finish('picnic','Drive somewhere & picnic on a whim')">
+        <span class="ic">🚗</span>
+        <span class="option-text">Spontaneous picnic<span class="option-desc">We drive until somewhere looks right</span></span>
+      </button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3g — walk -->
+  <section class="screen" id="screen-walk">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">🚶 walk</div>
+    <h1>What kind of walk?</h1>
+    <div class="grid">
+      <button class="option" onclick="finish('walk','Sunset stroll 🌅')"><span class="ic">🌅</span>Sunset stroll</button>
+      <button class="option" onclick="finish('walk','Downtown 🏙️')"><span class="ic">🏙️</span>Downtown</button>
+      <button class="option" onclick="showOther('walk-other')"><span class="ic">✨</span>Other</button>
+    </div>
+    <div class="other-wrap" id="walk-other">
+      <input type="text" id="walk-other-input" placeholder="Where to?" />
+      <button class="btn primary" onclick="finishOther('walk','walk-other-input','🚶')">Let's walk there</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3h — viewpoint -->
+  <section class="screen" id="screen-viewpoint">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">🌇 viewpoint</div>
+    <h1>Pick a spot</h1>
+    <div class="grid cols-1">
+      <button class="option" onclick="finish('viewpoint','Sunset view')">
+        <span class="ic">⛰️</span>
+        <span class="option-text">Sunset view<span class="option-desc">A classic sunset, a little climb</span></span>
+      </button>
+      <button class="option" onclick="finish('viewpoint','Mountain view')">
+        <span class="ic">🌳</span>
+        <span class="option-text">Mountain view<span class="option-desc">Open views, nice and easy</span></span>
+      </button>
+      <button class="option" onclick="finish('viewpoint','A rooftop bar with a skyline view')">
+        <span class="ic">🌆</span>
+        <span class="option-text">Rooftop bar<span class="option-desc">Drinks + skyline, dressier option</span></span>
+      </button>
+      <button class="option" onclick="showOther('viewpoint-other')">
+        <span class="ic">💬</span>
+        <span class="option-text">My favorite spot<span class="option-desc">Tell me where you love to go</span></span>
+      </button>
+    </div>
+    <div class="other-wrap" id="viewpoint-other">
+      <input type="text" id="viewpoint-other-input" placeholder="Your favorite view..." />
+      <button class="btn primary" onclick="finishOther('viewpoint','viewpoint-other-input','📍')">Take me there</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3i — other activity -->
+  <section class="screen" id="screen-other">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">✨ something else</div>
+    <h1>What did you have in mind?</h1>
+    <div class="other-wrap show">
+      <input type="text" id="other-activity-input" placeholder="e.g. karaoke, mini golf, baking..." />
+      <button class="btn primary" onclick="finishOther('other','other-activity-input','✨')">Let's do that</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3j — fun questions -->
+  <section class="screen" id="screen-fun">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">🎲 fun questions</div>
+    <h1>Just for fun</h1>
+    <p class="sub" style="text-align:left; font-weight:700; margin-bottom:0.5rem;">🕷️ Favorite Spider-Man?</p>
+    <div class="grid cols-1" id="fun-spiderman">
+      <button class="option" onclick="selectFun('spiderman','Tom Holland', this)">Tom Holland</button>
+      <button class="option" onclick="selectFun('spiderman','Andrew Garfield', this)">Andrew Garfield</button>
+      <button class="option" onclick="selectFun('spiderman','Tobey Maguire', this)">Tobey Maguire</button>
+    </div>
+    <p class="sub" style="text-align:left; font-weight:700; margin:1rem 0 0.5rem;">⚡ Favorite Harry Potter movie?</p>
+    <div class="grid cols-1" id="fun-hp">
+      <button class="option" onclick="selectFun('hp','Goblet of Fire', this)">Goblet of Fire</button>
+      <button class="option" onclick="selectFun('hp','Half-Blood Prince', this)">Half-Blood Prince</button>
+      <button class="option" onclick="selectFun('hp','Chamber of Secrets', this)">Chamber of Secrets</button>
+    </div>
+    <p class="sub" style="text-align:left; font-weight:700; margin:1rem 0 0.5rem;">🦸 Favorite Marvel hero?</p>
+    <div class="grid cols-1" id="fun-marvel">
+      <button class="option" onclick="selectFun('marvel','Spider-Man', this)">Spider-Man</button>
+      <button class="option" onclick="selectFun('marvel','Iron Man', this)">Iron Man</button>
+      <button class="option" onclick="selectFun('marvel','Captain America', this)">Captain America</button>
+    </div>
+    <p class="sub" style="text-align:left; font-weight:700; margin:1rem 0 0.5rem;">🍿 Movie night pick?</p>
+    <div class="grid cols-1" id="fun-movieNight">
+      <button class="option" onclick="selectFun('movieNight','Comedy', this)">Comedy</button>
+      <button class="option" onclick="selectFun('movieNight','Romance', this)">Romance</button>
+      <button class="option" onclick="selectFun('movieNight','Action', this)">Action</button>
+    </div>
+    <p class="sub" style="text-align:left; font-weight:700; margin:1rem 0 0.5rem;">🐾 Dog person or cat person?</p>
+    <div class="grid cols-1" id="fun-pet">
+      <button class="option" onclick="selectFun('pet','Dog person', this)">Dog person</button>
+      <button class="option" onclick="selectFun('pet','Cat person', this)">Cat person</button>
+      <button class="option" onclick="selectFun('pet','Both!', this)">Both!</button>
+    </div>
+    <p class="sub" style="text-align:left; font-weight:700; margin:1rem 0 0.5rem;">☕ Coffee or tea?</p>
+    <div class="grid cols-1" id="fun-drink">
+      <button class="option" onclick="selectFun('drink','Coffee', this)">Coffee</button>
+      <button class="option" onclick="selectFun('drink','Tea', this)">Tea</button>
+      <button class="option" onclick="selectFun('drink','Neither, thanks', this)">Neither, thanks</button>
+    </div>
+    <p class="sub" style="text-align:left; font-weight:700; margin:1rem 0 0.5rem;">🏖️ Beach, mountains, or city?</p>
+    <div class="grid cols-1" id="fun-getaway">
+      <button class="option" onclick="selectFun('getaway','Beach', this)">Beach</button>
+      <button class="option" onclick="selectFun('getaway','Mountains', this)">Mountains</button>
+      <button class="option" onclick="selectFun('getaway','City', this)">City</button>
+    </div>
+    <p class="sub" style="text-align:left; font-weight:700; margin:1rem 0 0.5rem;">🌙 Morning person or night owl?</p>
+    <div class="grid cols-1" id="fun-schedule">
+      <button class="option" onclick="selectFun('schedule','Morning person', this)">Morning person</button>
+      <button class="option" onclick="selectFun('schedule','Night owl', this)">Night owl</button>
+      <button class="option" onclick="selectFun('schedule','Depends on the day', this)">Depends on the day</button>
+    </div>
+    <p class="sub" style="text-align:left; font-weight:700; margin:1rem 0 0.5rem;">🎮 Game night or movie night?</p>
+    <div class="grid cols-1" id="fun-gameNight">
+      <button class="option" onclick="selectFun('gameNight','Game night', this)">Game night</button>
+      <button class="option" onclick="selectFun('gameNight','Movie night', this)">Movie night</button>
+      <button class="option" onclick="selectFun('gameNight','Both equally', this)">Both equally</button>
+    </div>
+    <p class="sub" style="text-align:left; font-weight:700; margin:1rem 0 0.5rem;">🍕 Pineapple on pizza?</p>
+    <div class="grid cols-1" id="fun-pizza">
+      <button class="option" onclick="selectFun('pizza','Yes!', this)">Yes!</button>
+      <button class="option" onclick="selectFun('pizza','No way', this)">No way</button>
+      <button class="option" onclick="selectFun('pizza',\"Don't care\", this)">Don't care</button>
+    </div>
+    <button class="btn primary" style="margin-top:1.1rem;" onclick="finishFun()">Continue →</button>
+  </section>
+
+  <!-- SCREEN 3.4 — flowers -->
+  <section class="screen" id="screen-flowers">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">🌸 last question</div>
+    <h1>Any preferred flowers?</h1>
+    <div class="grid" id="flower-grid">
+      <button class="option" onclick="selectFlower('Roses 🌹', this)"><span class="ic">🌹</span>Roses</button>
+      <button class="option" onclick="selectFlower('Tulips 🌷', this)"><span class="ic">🌷</span>Tulips</button>
+      <button class="option" onclick="selectFlower('Sunflowers 🌻', this)"><span class="ic">🌻</span>Sunflowers</button>
+      <button class="option" onclick="selectFlower('Lilies 🌼', this)"><span class="ic">🌼</span>Lilies</button>
+      <button class="option" onclick="selectFlower('Orchids', this)"><span class="ic">🪻</span>Orchids</button>
+      <button class="option" onclick="selectFlower('Surprise me 🎁', this)"><span class="ic">🎁</span>Surprise me</button>
+    </div>
+    <div class="other-wrap show" style="margin-top:0.6rem;">
+      <input type="text" id="flower-other-input" placeholder="Or type your favorite flower..." />
+    </div>
+    <button class="btn primary" onclick="confirmFlower()">Continue →</button>
+  </section>
+
+  <!-- SCREEN 3.5 — note -->
+  <section class="screen" id="screen-note">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">last thing</div>
+    <h1>Anything I should know?</h1>
+    <p class="sub">Allergies, timing, "wear something nice," anything at all — totally optional.</p>
+    <div class="other-wrap show">
+      <textarea id="note-input" rows="3" placeholder="Optional message..."></textarea>
+      <button class="btn primary" onclick="confirmNote()">Continue →</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3.6 — her name -->
+  <section class="screen" id="screen-name">
+    <button class="back" onclick="goBack()">‹ back</button>
+    <div class="eyebrow">almost done</div>
+    <h1>Your name</h1>
+    <div class="other-wrap show">
+      <input type="text" id="her-name-input" placeholder="Your name" autocomplete="name" />
+    </div>
+    <p class="caption" id="name-warning">&nbsp;</p>
+    <button class="btn primary" onclick="submitName()">Send it 💌</button>
+  </section>
+
+  <!-- SCREEN 4 — final -->
+  <section class="screen" id="screen-final">
+    <div class="eyebrow">it's official</div>
+    <h1 id="final-heading">The date is set 🎉</h1>
+    <div class="flower-scene" id="flower-scene"></div>
+    <div class="summary" id="summary"></div>
+    <div class="signoff" id="signoff"></div>
+    <div class="send-status" id="send-status"></div>
+    <a class="mailto-btn" id="mailto-fallback" href="#" target="_blank" rel="noopener">📧 Email me a copy of this</a>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   EDIT THIS — change the date details and your name here.
+   ============================================================ */
+const PLAN = {
+  asker: "Sam",
+  email: "vasudevsumanth@gmail.com",  // <-- where the results get sent
+  maxDaysAhead: 29                    // she can pick any day from today through today+29 (30 days total)
+};
+
+/* ------------------------------------------------------------
+   EMAILJS SETUP (optional, but recommended)
+   Without this, results still appear on screen and she can
+   tap "Email me a copy" — but nothing is sent automatically.
+
+   1. Create a free account at https://www.emailjs.com (200 emails/mo free)
+   2. Email Services -> Add a service (e.g. connect your Gmail) -> copy the Service ID
+   3. Email Templates -> create a template using variables:
+        {{her_name}} {{day}} {{date}} {{time}} {{activity}} {{choice}}
+        {{flower}} {{note}}
+        {{fun_spiderman}} {{fun_hp}} {{fun_marvel}} {{fun_movie_night}}
+        {{fun_pet}} {{fun_drink}} {{fun_getaway}} {{fun_schedule}}
+        {{fun_game_night}} {{fun_pizza}}
+      -> copy the Template ID
+   4. Account -> General -> copy your Public Key
+   5. Paste all three below.
+   ------------------------------------------------------------ */
+const EMAILJS_CONFIG = {
+  publicKey:  "LidoaLsZ59GSMvecB",
+  serviceID:  "service_0331i2f",
+  templateID: "template_q9laywc"
+};
+
+if(window.emailjs && EMAILJS_CONFIG.publicKey !== "YOUR_PUBLIC_KEY"){
+  emailjs.init(EMAILJS_CONFIG.publicKey);
+}
+
+const ACTIVITY_META = {
+  coffee:    {label:'Coffee',    icon:'☕'},
+  food:      {label:'Food',      icon:'🍽️'},
+  arcade:    {label:'Arcade',    icon:'🕹️'},
+  bowling:   {label:'Bowling',   icon:'🎳'},
+  movie:     {label:'Movie',     icon:'🎬'},
+  picnic:    {label:'Picnic',    icon:'🧺'},
+  walk:      {label:'Walk',      icon:'🚶'},
+  viewpoint: {label:'Viewpoint', icon:'🌇'},
+  fun:       {label:'Fun Questions', icon:'🎲'},
+  other:     {label:'Something else', icon:'✨'}
+};
+
+const SCREEN_STEP = {
+  'screen-ask': 0,
+  'screen-date': 1,
+  'screen-activity': 2,
+  'screen-flowers': 4,
+  'screen-note': 5,
+  'screen-name': 6,
+  'screen-final': 7
+  // any activity sub-screen (coffee/food/fun/etc.) also counts as step 3
+};
+
+const STATE = {
+  name: '',
+  note: '',
+  flower: '',
+  selectedDateISO: null,
+  selectedTime: null,
+  day: '', date: '', time: '',
+  activityKey: null,
+  choiceLabel: '',
+  fun: {
+    spiderman: '', hp: '', marvel: '', movieNight: '', pet: '',
+    drink: '', getaway: '', schedule: '', gameNight: '', pizza: ''
+  }
+};
+
+let historyStack = ['screen-ask'];
+
+function setProgress(stepIndex){
+  const dots = document.querySelectorAll('#progress span');
+  dots.forEach((d,i)=> d.classList.toggle('on', i===stepIndex));
+}
+
+function stepForScreen(id){
+  if(SCREEN_STEP[id] !== undefined) return SCREEN_STEP[id];
+  return 3; // every activity sub-screen
+}
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(historyStack[historyStack.length-1] !== id) historyStack.push(id);
+  setProgress(stepForScreen(id));
+  if(id === 'screen-name'){
+    setTimeout(function(){
+      const input = document.getElementById('her-name-input');
+      if(input) input.focus();
+    }, 350);
+  }
+}
+
+function goBack(){
+  if(historyStack.length > 1){
+    historyStack.pop();
+    const prev = historyStack[historyStack.length-1];
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(prev).classList.add('active');
+    setProgress(stepForScreen(prev));
+  }
+}
+
+function submitName(){
+  const input = document.getElementById('her-name-input');
+  const warning = document.getElementById('name-warning');
+  const val = input.value.trim();
+  if(!val){
+    warning.textContent = "I'd love to know your name 😊";
+    input.focus();
+    return;
+  }
+  STATE.name = val;
+  warning.textContent = '';
+  sendFinal();
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  const input = document.getElementById('her-name-input');
+  if(input){
+    input.addEventListener('keydown', function(e){
+      if(e.key === 'Enter') submitName();
+    });
+  }
+});
+
+function selectActivity(key){
+  goTo('screen-' + key);
+}
+
+function showOther(id){
+  document.getElementById(id).classList.add('show');
+}
+
+function finishOther(activityKey, inputId, icon){
+  const val = document.getElementById(inputId).value.trim();
+  const label = val ? (icon + ' ' + val) : "Surprise me";
+  finish(activityKey, label);
+}
+
+function finish(activityKey, choiceLabel){
+  STATE.activityKey = activityKey;
+  STATE.choiceLabel = choiceLabel;
+  goTo('screen-flowers');
+}
+
+/* ---------- fun questions ---------- */
+function selectFun(group, value, el){
+  STATE.fun[group] = value;
+  const container = el.parentElement;
+  container.querySelectorAll('.option').forEach(function(o){ o.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+
+function finishFun(){
+  const total = Object.keys(STATE.fun).length;
+  const answered = Object.values(STATE.fun).filter(Boolean).length;
+  const label = '🎲 Played the mini quiz (' + answered + '/' + total + ' answered) — check the email for details!';
+  finish('fun', label);
+}
+
+/* ---------- flowers ---------- */
+function selectFlower(label, el){
+  STATE.flower = label;
+  document.querySelectorAll('#flower-grid .option').forEach(function(o){ o.classList.remove('selected'); });
+  el.classList.add('selected');
+  document.getElementById('flower-other-input').value = '';
+}
+
+function confirmFlower(){
+  const typed = document.getElementById('flower-other-input').value.trim();
+  if(typed){
+    STATE.flower = '🌸 ' + typed;
+    document.querySelectorAll('#flower-grid .option').forEach(function(o){ o.classList.remove('selected'); });
+  } else if(!STATE.flower){
+    STATE.flower = 'No preference';
+  }
+  goTo('screen-note');
+}
+
+/* ---------- note ---------- */
+function confirmNote(){
+  STATE.note = document.getElementById('note-input').value.trim();
+  goTo('screen-name');
+}
+
+function sendFinal(){
+  const meta = ACTIVITY_META[STATE.activityKey];
+  const choiceLabel = STATE.choiceLabel;
+
+  const summaryEl = document.getElementById('summary');
+  const signoffEl = document.getElementById('signoff');
+  const headingEl = document.getElementById('final-heading');
+
+  headingEl.textContent = STATE.name ? ('It\'s official, ' + STATE.name + '! 🎉') : 'The date is set 🎉';
+
+  let html =
+    '<strong>' + STATE.day + ', ' + STATE.date + '</strong> at <strong>' + STATE.time + '</strong><br>' +
+    meta.icon + ' ' + meta.label + ' — <strong>' + choiceLabel + '</strong>';
+
+  if(STATE.flower){
+    html += '<br>🌸 Flowers — <strong>' + STATE.flower + '</strong>';
+  }
+
+  summaryEl.innerHTML = html;
+
+  signoffEl.textContent = "Can't wait, " + STATE.name + " — " + PLAN.asker + " 💕";
+
+  setupMailtoFallback(meta, choiceLabel);
+  notifyAsker(meta, choiceLabel);
+
+  buildFlowers();
+  goTo('screen-final');
+}
+
+function setupMailtoFallback(meta, choiceLabel){
+  const link = document.getElementById('mailto-fallback');
+  const subject = encodeURIComponent("Date plan from " + STATE.name + ": " + meta.label + " — " + choiceLabel);
+  let body =
+    'From: ' + STATE.name + '\n' +
+    STATE.day + ', ' + STATE.date + ' at ' + STATE.time + '\n' +
+    meta.icon + ' ' + meta.label + ' — ' + choiceLabel;
+  if(STATE.flower){
+    body += '\nFlowers: ' + STATE.flower;
+  }
+  if(STATE.activityKey === 'fun'){
+    body += '\n\nFun Questions:' +
+      '\nFavorite Spider-Man: ' + (STATE.fun.spiderman || '—') +
+      '\nFavorite Harry Potter movie: ' + (STATE.fun.hp || '—') +
+      '\nFavorite Marvel hero: ' + (STATE.fun.marvel || '—') +
+      '\nMovie night pick: ' + (STATE.fun.movieNight || '—') +
+      '\nDog or cat person: ' + (STATE.fun.pet || '—') +
+      '\nCoffee or tea: ' + (STATE.fun.drink || '—') +
+      '\nBeach, mountains, or city: ' + (STATE.fun.getaway || '—') +
+      '\nMorning person or night owl: ' + (STATE.fun.schedule || '—') +
+      '\nGame night or movie night: ' + (STATE.fun.gameNight || '—') +
+      '\nPineapple on pizza: ' + (STATE.fun.pizza || '—');
+  }
+  if(STATE.note){
+    body += '\n\nNote: ' + STATE.note;
+  }
+  body += '\n\n(sent from the date invitation page)';
+  link.href = 'mailto:' + PLAN.email + '?subject=' + subject + '&body=' + encodeURIComponent(body);
+}
+
+function notifyAsker(meta, choiceLabel){
+  const statusEl = document.getElementById('send-status');
+
+  if(!window.emailjs){
+    statusEl.textContent = "Email service didn't load — tap below to email instead";
+    statusEl.className = 'send-status err';
+    return;
+  }
+
+  if(EMAILJS_CONFIG.publicKey === "YOUR_PUBLIC_KEY"){
+    statusEl.textContent = '';
+    statusEl.className = 'send-status';
+    return;
+  }
+
+  statusEl.textContent = 'sending the details to ' + PLAN.asker + '...';
+  statusEl.className = 'send-status';
+
+  const params = {
+    her_name: STATE.name,
+    day: STATE.day,
+    date: STATE.date,
+    time: STATE.time,
+    activity: meta.label,
+    choice: choiceLabel,
+    flower: STATE.flower || '(none)',
+    fun_spiderman: STATE.fun.spiderman || '(none)',
+    fun_hp: STATE.fun.hp || '(none)',
+    fun_marvel: STATE.fun.marvel || '(none)',
+    fun_movie_night: STATE.fun.movieNight || '(none)',
+    fun_pet: STATE.fun.pet || '(none)',
+    fun_drink: STATE.fun.drink || '(none)',
+    fun_getaway: STATE.fun.getaway || '(none)',
+    fun_schedule: STATE.fun.schedule || '(none)',
+    fun_game_night: STATE.fun.gameNight || '(none)',
+    fun_pizza: STATE.fun.pizza || '(none)',
+    note: STATE.note || '(none)',
+    to_email: PLAN.email
+  };
+
+  emailjs.send(EMAILJS_CONFIG.serviceID, EMAILJS_CONFIG.templateID, params)
+    .then(function(){
+      statusEl.textContent = '✓ sent to ' + PLAN.asker;
+      statusEl.className = 'send-status ok';
+    })
+    .catch(function(err){
+      const reason = (err && (err.text || err.message)) ? (err.text || err.message) : JSON.stringify(err);
+      statusEl.textContent = "Couldn't send (" + reason + ") — tap below instead";
+      statusEl.className = 'send-status err';
+      console.error('EmailJS error:', err);
+    });
+}
+
+function buildFlowers(){
+  const scene = document.getElementById('flower-scene');
+  scene.innerHTML = '';
+  const classes = ['rose','blush','gold','sage','rose','blush'];
+  for(let i=0;i<6;i++){
+    const wrap = document.createElement('div');
+    wrap.className = 'flower ' + classes[i];
+    wrap.innerHTML =
+      '<svg viewBox="0 0 100 100" width="100%" height="100%">' +
+        '<g class="petals">' +
+          '<ellipse cx="50" cy="25" rx="14" ry="22"/>' +
+          '<ellipse cx="50" cy="25" rx="14" ry="22" transform="rotate(72 50 50)"/>' +
+          '<ellipse cx="50" cy="25" rx="14" ry="22" transform="rotate(144 50 50)"/>' +
+          '<ellipse cx="50" cy="25" rx="14" ry="22" transform="rotate(216 50 50)"/>' +
+          '<ellipse cx="50" cy="25" rx="14" ry="22" transform="rotate(288 50 50)"/>' +
+        '</g>' +
+        '<circle cx="50" cy="50" r="12" class="center"/>' +
+      '</svg>';
+    scene.appendChild(wrap);
+  }
+}
+
+/* ---------- interactive calendar (next 30 days) ---------- */
+let todayDate, viewYear, viewMonth;
+
+function pad2(n){ return n < 10 ? '0' + n : '' + n; }
+function toISO(d){ return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate()); }
+
+function getMaxDate(){
+  const d = new Date(todayDate);
+  d.setDate(d.getDate() + PLAN.maxDaysAhead);
+  return d;
+}
+
+function initCalendar(){
+  const now = new Date();
+  todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  viewYear = todayDate.getFullYear();
+  viewMonth = todayDate.getMonth();
+  renderCalendar();
+}
+
+function changeMonth(delta){
+  const candidate = new Date(viewYear, viewMonth + delta, 1);
+  const minMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
+  const mx = getMaxDate();
+  const maxMonth = new Date(mx.getFullYear(), mx.getMonth(), 1);
+  if(candidate < minMonth || candidate > maxMonth) return;
+  viewYear = candidate.getFullYear();
+  viewMonth = candidate.getMonth();
+  renderCalendar();
+}
+
+function selectDate(iso){
+  STATE.selectedDateISO = iso;
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const monthName = new Date(viewYear, viewMonth, 1).toLocaleDateString('en-US', { month: 'long' });
+  const mx = getMaxDate();
+
+  const minMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
+  const maxMonth = new Date(mx.getFullYear(), mx.getMonth(), 1);
+  const curMonth = new Date(viewYear, viewMonth, 1);
+  const prevDisabled = curMonth <= minMonth;
+  const nextDisabled = curMonth >= maxMonth;
+
+  let html = '<div class="cal-nav">';
+  html += '<button class="cal-arrow" onclick="changeMonth(-1)" ' + (prevDisabled ? 'disabled' : '') + '>‹</button>';
+  html += '<div class="cal-header">' + monthName + ' ' + viewYear + '</div>';
+  html += '<button class="cal-arrow" onclick="changeMonth(1)" ' + (nextDisabled ? 'disabled' : '') + '>›</button>';
+  html += '</div>';
+
+  html += '<div class="cal-grid">';
+  ['S','M','T','W','T','F','S'].forEach(function(w){
+    html += '<div class="cal-dow">' + w + '</div>';
+  });
+  for(let i = 0; i < firstDay; i++) html += '<div class="cal-cell empty"></div>';
+  for(let day = 1; day <= daysInMonth; day++){
+    const cellDate = new Date(viewYear, viewMonth, day);
+    const inRange = cellDate >= todayDate && cellDate <= mx;
+    const iso = toISO(cellDate);
+    const isSelected = STATE.selectedDateISO === iso;
+    let cls = 'cal-cell';
+    if(!inRange) cls += ' disabled';
+    if(isSelected) cls += ' selected';
+    if(inRange){
+      html += '<div class="' + cls + '" onclick="selectDate(\'' + iso + '\')">' + day +
+              (isSelected ? '<span class="cal-heart">♥</span>' : '') + '</div>';
+    } else {
+      html += '<div class="' + cls + '">' + day + '</div>';
+    }
+  }
+  html += '</div>';
+
+  document.getElementById('plan-card').innerHTML = html;
+}
+
+/* ---------- time picker ---------- */
+function selectTime(label, el, customValue){
+  if(customValue !== undefined){
+    // custom <input type="time"> changed
+    if(!customValue){ return; }
+    const [h, m] = customValue.split(':').map(Number);
+    const period = h >= 12 ? 'PM' : 'AM';
+    let h12 = h % 12;
+    if(h12 === 0) h12 = 12;
+    STATE.selectedTime = h12 + ':' + pad2(m) + ' ' + period;
+    document.querySelectorAll('.time-chip').forEach(function(c){ c.classList.remove('selected'); });
+    return;
+  }
+  STATE.selectedTime = label;
+  document.querySelectorAll('.time-chip').forEach(function(c){ c.classList.remove('selected'); });
+  el.classList.add('selected');
+  document.getElementById('time-other-input').value = '';
+}
+
+function confirmDateTime(){
+  const warning = document.getElementById('date-warning');
+  if(!STATE.selectedDateISO || !STATE.selectedTime){
+    warning.textContent = "Pick a day and a time first 🙂";
+    return;
+  }
+  warning.textContent = '';
+  const d = new Date(STATE.selectedDateISO + 'T00:00:00');
+  STATE.day = d.toLocaleDateString('en-US', { weekday: 'long' });
+  STATE.date = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  STATE.time = STATE.selectedTime;
+  goTo('screen-activity');
+}
+
+initCalendar();
+
+/* ---------- ambient petals ---------- */
+(function(){
+  const ambient = document.getElementById('ambient');
+  const colors = ['rose','blush','gold','sage'];
+  for(let i=0;i<14;i++){
+    const p = document.createElement('div');
+    p.className = 'petal ' + colors[i % colors.length];
+    p.style.left = (Math.random()*100) + 'vw';
+    p.style.setProperty('--drift', (Math.random()*120 - 60) + 'px');
+    p.style.animationDuration = (9 + Math.random()*10) + 's';
+    p.style.animationDelay = (Math.random()*10) + 's';
+    p.style.opacity = 0.35 + Math.random()*0.35;
+    const scale = 0.7 + Math.random()*0.8;
+    p.style.transform = 'scale(' + scale + ')';
+    ambient.appendChild(p);
+  }
+})();
+
+/* ---------- the dodging "No" button ---------- */
+(function(){
+  const noBtn = document.getElementById('no-btn');
+  const yesBtn = document.getElementById('yes-btn');
+  const caption = document.getElementById('dodge-caption');
+
+  const captions = [
+    "nice try 😏",
+    "not today",
+    "yes is right there →",
+    "this button is shy",
+    "almost! ...nope",
+    "404: no, not found",
+    "try clicking yes instead",
+    "it's quicker than you think 👀",
+    "no isn't really an option"
+  ];
+
+  const DANGER_RADIUS = 110; // start fleeing once the pointer gets this close
+  const DODGE_COOLDOWN = 250; // ms between dodges, so it doesn't jitter
+  let placed = false;
+  let answered = false;
+  let dodgeCount = 0;
+  let lastDodge = 0;
+
+  const PAD = 12; // keep it fully on-screen with a small margin
+
+  function placeFixed(){
+    const btnRect = noBtn.getBoundingClientRect();
+    // capture current visual position before reparenting
+    const left = btnRect.left;
+    const top = btnRect.top;
+    document.body.appendChild(noBtn); // escape the card so it can roam the whole screen
+    noBtn.style.position = 'fixed';
+    noBtn.style.left = left + 'px';
+    noBtn.style.top = top + 'px';
+    noBtn.style.margin = '0';
+    noBtn.style.zIndex = '999';
+    placed = true;
+  }
+
+  // place it right away so dodging works across the whole screen from the first move
+  requestAnimationFrame(placeFixed);
+
+  function dodge(pointerX, pointerY){
+    if(!placed) placeFixed();
+    const btnRect = noBtn.getBoundingClientRect();
+    const maxX = Math.max(PAD, window.innerWidth - btnRect.width - PAD);
+    const maxY = Math.max(PAD, window.innerHeight - btnRect.height - PAD);
+
+    // pointer position in viewport coords (default: center of screen)
+    const px = (pointerX !== undefined) ? pointerX : window.innerWidth / 2;
+    const py = (pointerY !== undefined) ? pointerY : window.innerHeight / 2;
+
+    // try a bunch of random spots anywhere on screen and keep the one farthest from the pointer
+    let best = null;
+    for(let i = 0; i < 20; i++){
+      const x = PAD + Math.random() * (maxX - PAD);
+      const y = PAD + Math.random() * (maxY - PAD);
+      const cx = x + btnRect.width / 2;
+      const cy = y + btnRect.height / 2;
+      const d = Math.hypot(cx - px, cy - py);
+      if(!best || d > best.d) best = {x, y, d};
+    }
+
+    noBtn.style.transition = 'left .45s ease, top .45s ease';
+    noBtn.style.left = best.x + 'px';
+    noBtn.style.top = best.y + 'px';
+
+    dodgeCount++;
+    lastDodge = Date.now();
+    caption.textContent = captions[dodgeCount % captions.length];
+  }
+
+  function maybeDodge(clientX, clientY){
+    if(answered) return;
+    if(Date.now() - lastDodge < DODGE_COOLDOWN) return;
+    const btnRect = noBtn.getBoundingClientRect();
+    const cx = btnRect.left + btnRect.width / 2;
+    const cy = btnRect.top + btnRect.height / 2;
+    const dist = Math.hypot(clientX - cx, clientY - cy);
+    if(dist < DANGER_RADIUS) dodge(clientX, clientY);
+  }
+
+  // desktop: flee as soon as the cursor gets close, anywhere on the page
+  document.addEventListener('mousemove', function(e){
+    maybeDodge(e.clientX, e.clientY);
+  });
+
+  // also dodge on hover/focus, just in case
+  noBtn.addEventListener('mouseenter', function(){ if(!answered) dodge(); });
+  noBtn.addEventListener('focus', function(){ if(!answered) dodge(); });
+
+  // mobile: dodge as a finger gets close, both on first touch and while dragging
+  document.addEventListener('touchstart', function(e){
+    if(answered) return;
+    const t = e.touches[0];
+    if(!t) return;
+    const btnRect = noBtn.getBoundingClientRect();
+    const cx = btnRect.left + btnRect.width / 2;
+    const cy = btnRect.top + btnRect.height / 2;
+    const dist = Math.hypot(t.clientX - cx, t.clientY - cy);
+    if(dist < DANGER_RADIUS + 40){
+      if(e.target === noBtn) e.preventDefault();
+      dodge(t.clientX, t.clientY);
+    }
+  }, {passive:false});
+
+  document.addEventListener('touchmove', function(e){
+    const t = e.touches[0];
+    if(!t) return;
+    maybeDodge(t.clientX, t.clientY);
+  }, {passive:true});
+
+  // just in case it's ever "clicked" successfully — still a no-go
+  noBtn.addEventListener('click', function(e){
+    e.preventDefault();
+    if(!answered) dodge();
+  });
+
+  yesBtn.addEventListener('click', function(){
+    answered = true;
+    noBtn.style.display = 'none';
+    goTo('screen-date');
+  });
+})();
+</script>
+
+</body>
+</html>
